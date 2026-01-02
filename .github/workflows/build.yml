@@ -8,23 +8,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 拉取代码
+      # 1. 拉取代码 (从 j4nn 原仓库拉取，避免 Fork 丢失分支的问题)
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
+          repository: j4nn/renoshell
           ref: CVE-2019-2215
 
-      # 2. 设置 Android NDK (使用 nttld/setup-ndk 替代)
+      # 2. 设置 Android NDK (r21e 版本)
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r21e  # 使用 r21e 版本，对旧代码兼容性更好
+          ndk-version: r21e
 
       # 3. 执行编译
       - name: Build with ndk-build
         run: |
           echo "Starting build with NDK..."
-          # nttld/setup-ndk 会自动设置 ANDROID_NDK_HOME 并将 ndk-build 加入 PATH
           ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./jni/Android.mk
           
           echo "Build finished. Checking output:"
