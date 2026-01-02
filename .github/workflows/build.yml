@@ -1,0 +1,40 @@
+name: Build Renoshell (CVE-2019-2215)
+
+on:
+  workflow_dispatch: # 允许手动点击按钮触发编译
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取代码，注意这里强制指定了 CVE-2019-2215 分支
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: CVE-2019-2215
+
+      # 2. 设置 Android NDK 环境
+      # GitHub 的 ubuntu-latest 运行环境通常自带 NDK，
+      # 但为了保险，我们使用专门的 setup-ndk 动作来配置特定版本（或者直接使用默认）
+      - name: Setup Android NDK
+        uses: android-actions/setup-ndk@v1
+        with:
+          ndk-version: r25c # 使用较新的 NDK 版本，如果报错可尝试改回 r21e
+
+      # 3. 执行编译命令
+      - name: Build with ndk-build
+        run: |
+          echo "Starting build..."
+          # ndk-build 脚本会自动寻找当前目录下的 jni 文件夹并根据 Android.mk 编译
+          ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./jni/Android.mk
+          echo "Build finished."
+          # 列出生成的文件以确认
+          ls -R libs/
+
+      # 4. 上传编译好的文件供下载
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: renoshell-binary
+          path: libs/ # 上传 libs 目录下的所有内容（包含 arm64-v8a 等架构）
